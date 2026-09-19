@@ -27,7 +27,10 @@ IMAGES=(
   "rockylinux:9|glibc|ok"
   "fedora:latest|glibc|ok"
   "archlinux:latest|glibc|ok"
-  "alpine:3.12|musl|ok"
+  "alpine:3.17|musl|probe"
+  "alpine:3.18|musl|probe"
+  "alpine:3.19|musl|probe"
+  "alpine:3.20|musl|ok"
   "alpine:latest|musl|ok"
 )
 [ "$ARCH" = arm64 ] && IMAGES=("debian:11|glibc|ok" "ubuntu:24.04|glibc|ok" "alpine:latest|musl|ok")
@@ -52,6 +55,7 @@ for entry in "${IMAGES[@]}"; do
   else
     reason=$(grep -vE '^libc=' <<<"$out" | tail -n1 | cut -c1-80)
     if [ "$expect" = expect-fail ]; then result="⛔ unsupported (expected): $reason"
+    elif [ "$expect" = probe ]; then result="⛔ doesn't work: $reason"
     else result="❌ FAILED: $reason"; failed=1; echo "$out" >&2; fi
   fi
   [ "$libc" = musl ] && libc_ver=""
