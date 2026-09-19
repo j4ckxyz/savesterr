@@ -52,5 +52,6 @@ jobs:
       - if: matrix.arch == 'arm64'
         uses: docker/setup-qemu-action@v3
       - name: Run in each distro
+        shell: bash # -o pipefail, so a failure isn't hidden by tee
         run: |
           ARCH=${{ matrix.arch }} scripts/test-distros.sh | tee -a "$GITHUB_STEP_SUMMARY"

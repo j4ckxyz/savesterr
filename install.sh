@@ -49,7 +49,17 @@ fi
 variant=""
 if [ "$os" = linux ]; then
   # Alpine, Void and friends use musl instead of glibc.
-  if ls /lib/ld-musl-* >/dev/null 2>&1 || (ldd --version 2>&1 | grep -qi musl); then variant="-musl"; fi
+  if ls /lib/ld-musl-* >/dev/null 2>&1 || (ldd --version 2>&1 | grep -qi musl); then
+    variant="-musl"
+    # The musl build needs the C++ runtime, which Alpine doesn't install by default.
+    if ! ls /usr/lib/libstdc++.so.6* /lib/libstdc++.so.6* >/dev/null 2>&1; then
+      if command -v apk >/dev/null 2>&1; then
+        fail "songsterr-pdf needs the C++ runtime. Install it, then re-run this installer:
+  apk add libstdc++ libgcc      (prefix with sudo/doas if you're not root)"
+      fi
+      fail "songsterr-pdf needs the C++ runtime (libstdc++ and libgcc). Install them with your package manager, then re-run this installer."
+    fi
+  fi
   if [ "$arch" = x64 ] && [ -r /proc/cpuinfo ] && ! grep -q sse4_2 /proc/cpuinfo; then
     fail "this CPU lacks SSE4.2, which is required (any x86-64 CPU from ~2009 onwards has it)"
   fi
