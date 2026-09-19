@@ -1,6 +1,6 @@
 # savesterr installer for Windows (PowerShell 5.1+ or PowerShell 7).
 #
-#   gh api repos/j4ckxyz/savesterr/contents/install.ps1 -H "Accept: application/vnd.github.raw" | Out-String | iex
+#   irm https://raw.githubusercontent.com/j4ckxyz/savesterr/main/install.ps1 | iex
 #
 # Environment overrides:
 #   SAVESTERR_INSTALL_DIR  where to put the exe  (default: %LOCALAPPDATA%\Programs\savesterr)

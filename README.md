@@ -31,18 +31,16 @@ Search for a song, tick the guitar parts you want, and the PDFs open in your PDF
 
 ## Install
 
-This repository is private, so installing uses your [GitHub CLI](https://cli.github.com) login. Run `gh auth login` once on the machine, then:
-
 **macOS / Linux**: paste into Terminal:
 
 ```sh
-gh api repos/j4ckxyz/savesterr/contents/install.sh -H "Accept: application/vnd.github.raw" | sh
+curl -fsSL https://raw.githubusercontent.com/j4ckxyz/savesterr/main/install.sh | sh
 ```
 
 **Windows**: paste into PowerShell:
 
 ```powershell
-gh api repos/j4ckxyz/savesterr/contents/install.ps1 -H "Accept: application/vnd.github.raw" | Out-String | iex
+irm https://raw.githubusercontent.com/j4ckxyz/savesterr/main/install.ps1 | iex
 ```
 
 Then open a **new** terminal window and run:
@@ -51,7 +49,7 @@ Then open a **new** terminal window and run:
 savesterr
 ```
 
-The installer picks the right build for your computer, verifies its checksum, and adds it to your `PATH`. Nothing needs admin rights. `savesterr update` also uses your `gh` login (or a `GITHUB_TOKEN`) to fetch new versions.
+The installer picks the right build for your computer, verifies its checksum, and adds it to your `PATH`. Nothing needs admin rights.
 
 <details>
 <summary><b>Install options</b> (custom folder, specific version)</summary>
@@ -65,10 +63,10 @@ Set these environment variables for the installer (the `sh` side of the pipe, or
 | `SAVESTERR_NO_MODIFY_PATH` | – | Set to `1` to leave your shell startup files alone (macOS/Linux) |
 
 ```sh
-gh api repos/j4ckxyz/savesterr/contents/install.sh -H "Accept: application/vnd.github.raw" | SAVESTERR_INSTALL_DIR=/usr/local/bin sh
+curl -fsSL https://raw.githubusercontent.com/j4ckxyz/savesterr/main/install.sh | SAVESTERR_INSTALL_DIR=/usr/local/bin sh
 ```
 
-Or download a binary with `gh release download --repo j4ckxyz/savesterr --pattern 'savesterr-darwin-arm64'` (pick your platform) and put it anywhere on your `PATH`.
+Or download a binary for your platform from the [releases page](https://github.com/j4ckxyz/savesterr/releases/latest) and put it anywhere on your `PATH`.
 
 </details>
 

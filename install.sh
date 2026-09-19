@@ -1,7 +1,7 @@
 #!/bin/sh
 # savesterr installer for macOS and Linux.
 #
-#   gh api repos/j4ckxyz/savesterr/contents/install.sh -H "Accept: application/vnd.github.raw" | sh
+#   curl -fsSL https://raw.githubusercontent.com/j4ckxyz/savesterr/main/install.sh | sh
 #
 # Environment overrides:
 #   SAVESTERR_INSTALL_DIR  where to put the binary   (default: ~/.local/bin)
@@ -30,7 +30,7 @@ case "$os" in
   Darwin) os=darwin ;;
   Linux) os=linux ;;
   MINGW* | MSYS* | CYGWIN*) fail "on Windows, run this in PowerShell instead:
-  gh api repos/$REPO/contents/install.ps1 -H \"Accept: application/vnd.github.raw\" | Out-String | iex" ;;
+  irm https://raw.githubusercontent.com/$REPO/main/install.ps1 | iex" ;;
   *) fail "unsupported operating system: $os" ;;
 esac
 case "$arch" in
