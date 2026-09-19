@@ -27,10 +27,12 @@ IMAGES=(
   "rockylinux:9|glibc|ok"
   "fedora:latest|glibc|ok"
   "archlinux:latest|glibc|ok"
-  "alpine:3.17|musl|probe"
-  "alpine:3.18|musl|probe"
-  "alpine:3.19|musl|probe"
-  "alpine:3.20|musl|ok"
+  "alpine:3.12|musl|probe"
+  "alpine:3.13|musl|probe"
+  "alpine:3.14|musl|probe"
+  "alpine:3.15|musl|probe"
+  "alpine:3.16|musl|probe"
+  "alpine:3.17|musl|ok"
   "alpine:latest|musl|ok"
 )
 [ "$ARCH" = arm64 ] && IMAGES=("debian:11|glibc|ok" "ubuntu:24.04|glibc|ok" "alpine:latest|musl|ok")
