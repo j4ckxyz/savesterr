@@ -182,9 +182,9 @@ Lyrics are not included.
 | --- | --- | --- |
 | **macOS** | 13 Ventura and newer · Apple Silicon and Intel | macOS 14, 26 (Apple Silicon) · macOS 15 (Intel) |
 | **Windows** | Windows 10 1809 and newer, Windows 11 · x64 and ARM64 | Windows Server 2022, 2025 (x64) |
-| **Linux** | glibc 2.17+ (CentOS/RHEL 7 era, 2014) or musl (Alpine) · x64 and ARM64 | See [Linux distributions](#linux-distributions) |
+| **Linux** | glibc 2.17+ (CentOS/RHEL 7, 2014 onwards) or Alpine 3.17+ · x64 and ARM64 | See [Linux distributions](#linux-distributions) |
 
-These floors come from the [Bun](https://bun.sh) runtime that the app is compiled with. The macOS binaries declare a minimum of macOS 13.0, and on x64 the CPU needs SSE4.2 (any Intel/AMD chip from about 2009 onwards).
+These floors come from the [Bun](https://bun.sh) runtime that the app is compiled with, and were confirmed by testing. The macOS binaries declare a minimum of macOS 13.0, Windows 10 1809 is Bun's stated minimum, and on x64 the CPU needs SSE4.2 (any Intel/AMD chip from about 2009 onwards).
 
 ### Linux distributions
 
@@ -197,11 +197,12 @@ Every CI run downloads a real tab inside each of these distributions:
 | CentOS 7 · Amazon Linux 2 | glibc 2.17 · 2.26 | ✅ | – |
 | Ubuntu 16.04 · 18.04 · 20.04 · 22.04 · 24.04 | glibc 2.23 – 2.39 | ✅ | ✅ 24.04 |
 | Debian 10 · 11 · 12 | glibc 2.28 – 2.36 | ✅ | ✅ 11 |
-| Rocky Linux 9 · Fedora · Arch | current glibc | ✅ | – |
-| Alpine 3.12 · latest | musl | ✅ | ✅ latest |
+| Rocky Linux 9 · Fedora · Arch | glibc 2.34 – 2.44 | ✅ | – |
+| Alpine 3.12 – 3.16 | musl | ⛔ too old | – |
+| Alpine 3.17 · latest | musl | ✅ | ✅ latest |
 <!-- DISTRO-TABLE:END -->
 
-The installer detects musl-based systems such as Alpine and Void and installs the matching build automatically. Those systems need the C++ runtime first: `apk add libstdc++ libgcc`.
+The installer detects musl-based systems such as Alpine and Void and installs the matching build automatically. Those systems need the C++ runtime first: `apk add libstdc++ libgcc`. Alpine 3.16 and older ship a C++ runtime that's too old.
 
 ## Troubleshooting
 
@@ -209,6 +210,17 @@ The installer detects musl-based systems such as Alpine and Void and installs th
 <summary><b>"command not found: songsterr-pdf" after installing</b></summary>
 
 Open a new terminal window: the installer added the program's folder to your `PATH`, and terminals that were already open don't see that change. You can also run it by its full path (`~/.local/bin/songsterr-pdf`, or `%LOCALAPPDATA%\Programs\songsterr-pdf\songsterr-pdf.exe` on Windows).
+
+</details>
+
+<details>
+<summary><b>macOS says the app "can't be opened" (downloaded from the Releases page)</b></summary>
+
+The binaries are signed but not notarized by Apple, so macOS blocks them when they're downloaded through a web browser. The install command doesn't hit this. If you downloaded the file manually, clear the download flag once:
+
+```sh
+xattr -d com.apple.quarantine ./songsterr-pdf-darwin-*
+```
 
 </details>
 
@@ -316,8 +328,9 @@ src/
 ├── platform.ts   OS differences: safe file names, folders, opening files
 └── types.ts      Types for Songsterr's JSON
 scripts/
-├── build.ts          Cross-compiles all targets
-└── test-distros.sh   Linux compatibility matrix
+├── build.ts            Cross-compiles all targets (and re-signs macOS builds)
+├── entitlements.plist  JIT entitlements for the macOS signature
+└── test-distros.sh     Linux compatibility matrix
 install.sh, install.ps1   One-line installers
 ```
 
@@ -328,7 +341,7 @@ A small build plugin in `scripts/build.ts` embeds pdfkit's font metrics. pdfkit 
 1. Bump `version` in `package.json` and commit.
 2. `git tag v1.2.3 && git push --tags`
 
-The **Release** workflow tests the code, builds all 8 binaries on macOS so the Mac builds are code-signed, and publishes them with `SHA256SUMS` and the installers. The **Install & update test** workflow then runs both installers and `songsterr-pdf update` on every OS against the new release.
+The **Release** workflow tests the code, builds all 8 binaries on macOS so the Mac builds can be re-signed with `codesign` (Bun's own signature is invalidated when the app is embedded), and publishes them with `SHA256SUMS` and the installers. The **Install & update test** workflow then runs both installers and `songsterr-pdf update` on every OS against the new release.
 
 ## Limitations
 

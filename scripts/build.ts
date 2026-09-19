@@ -77,7 +77,26 @@ async function build(target: Target, outfile: string) {
     for (const log of result.logs) console.error(log);
     throw new Error(`Build failed for ${target}`);
   }
-  return result.outputs[0]!.path;
+  const path = result.outputs[0]!.path;
+  if (target.startsWith("darwin")) await adhocSign(path);
+  return path;
+}
+
+/**
+ * Bun's compiled macOS binaries carry a linker signature that the appended
+ * app bundle invalidates (`codesign -v` reports "invalid signature"). Re-sign
+ * ad-hoc with the JIT entitlements Bun's docs recommend, so Gatekeeper and
+ * the kernel see a valid signature. Only possible on a macOS host.
+ */
+async function adhocSign(path: string) {
+  if (process.platform !== "darwin") {
+    console.warn(`! ${basename(path)}: not re-signed (needs a macOS host) — release builds run on macOS`);
+    return;
+  }
+  const sign = Bun.spawnSync(["codesign", "--force", "--sign", "-", "--entitlements", "scripts/entitlements.plist", path]);
+  const verify = Bun.spawnSync(["codesign", "--verify", "--strict", path]);
+  if (sign.exitCode !== 0 || verify.exitCode !== 0)
+    throw new Error(`codesign failed for ${path}: ${sign.stderr.toString()}${verify.stderr.toString()}`);
 }
 
 async function main() {
