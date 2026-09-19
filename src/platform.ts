@@ -39,12 +39,15 @@ export function defaultOutputDir(): string {
   return join(existsSync(docs) ? docs : home, "Songsterr Tabs");
 }
 
-/** Per-user config directory: %APPDATA%, ~/Library/Application Support, or $XDG_CONFIG_HOME. */
-export function configDir(): string {
+/**
+ * Per-user config directory: %APPDATA%, ~/Library/Application Support, or $XDG_CONFIG_HOME.
+ * `app` is only overridden to find settings from before the rename (songsterr-pdf).
+ */
+export function configDir(app = "savesterr"): string {
   const home = homedir();
-  if (process.platform === "win32") return join(process.env.APPDATA ?? join(home, "AppData", "Roaming"), "songsterr-pdf");
-  if (process.platform === "darwin") return join(home, "Library", "Application Support", "songsterr-pdf");
-  return join(process.env.XDG_CONFIG_HOME || join(home, ".config"), "songsterr-pdf");
+  if (process.platform === "win32") return join(process.env.APPDATA ?? join(home, "AppData", "Roaming"), app);
+  if (process.platform === "darwin") return join(home, "Library", "Application Support", app);
+  return join(process.env.XDG_CONFIG_HOME || join(home, ".config"), app);
 }
 
 /** Replace a leading home directory with ~ for display. */

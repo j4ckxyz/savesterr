@@ -27,11 +27,11 @@ jobs:
       - name: Smoke test the compiled binary
         shell: bash
         run: |
-          ./dist/songsterr-pdf --version
-          ./dist/songsterr-pdf --help | head -3
-          ./dist/songsterr-pdf 444 --list | head -3
-          ./dist/songsterr-pdf "paranoid black sabbath" -y --no-open -o smoke
-          ./dist/songsterr-pdf 444 -t 5,6 --combine --paper letter -y --no-open -o smoke
+          ./dist/savesterr --version
+          ./dist/savesterr --help | head -3
+          ./dist/savesterr 444 --list | head -3
+          ./dist/savesterr "paranoid black sabbath" -y --no-open -o smoke
+          ./dist/savesterr 444 -t 5,6 --combine --paper letter -y --no-open -o smoke
           ls -la smoke
           test "$(ls smoke/*.pdf | wc -l)" -ge 4
 

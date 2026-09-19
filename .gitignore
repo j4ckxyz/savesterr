@@ -36,4 +36,4 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # generated tabs & compiled binary
 tabs/
 *.pdf
-/songsterr-pdf
+/savesterr

@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 /**
  * Builds standalone executables for every supported platform into ./dist,
- * plus a SHA256SUMS file used by the installers and `songsterr-pdf update`.
+ * plus a SHA256SUMS file used by the installers and `savesterr update`.
  *
  *   bun scripts/build.ts            # all targets
- *   bun scripts/build.ts --current  # just this machine (dist/songsterr-pdf[.exe])
+ *   bun scripts/build.ts --current  # just this machine (dist/savesterr[.exe])
  *   bun scripts/build.ts linux-x64 darwin-arm64
  *   bun scripts/build.ts --current --as-version 0.0.1   # pretend to be old (tests `update`)
  */
@@ -61,15 +61,15 @@ async function build(target: Target, outfile: string) {
       autoloadDotenv: false,
       autoloadBunfig: false,
       windows: {
-        title: "songsterr-pdf",
+        title: "savesterr",
         description: pkg.description,
         version,
-        publisher: "songsterr-pdf",
+        publisher: "savesterr",
       },
     },
     minify: true,
     sourcemap: "none",
-    // Lets `songsterr-pdf update` fetch the matching asset (e.g. linux-x64-musl).
+    // Lets `savesterr update` fetch the matching asset (e.g. linux-x64-musl).
     define: { BUILD_TARGET: JSON.stringify(target), BUILD_VERSION: JSON.stringify(version) },
     plugins: [pdfkitFonts],
   });
@@ -109,7 +109,7 @@ async function main() {
   await mkdir("dist", { recursive: true });
 
   if (args.includes("--current")) {
-    const out = `dist/songsterr-pdf${process.platform === "win32" ? ".exe" : ""}`;
+    const out = `dist/savesterr${process.platform === "win32" ? ".exe" : ""}`;
     console.log(`✓ ${await build(currentTarget(), out)}`);
     return;
   }
@@ -121,7 +121,7 @@ async function main() {
   await mkdir("dist");
   const sums: string[] = [];
   for (const t of targets) {
-    const out = `dist/songsterr-pdf-${t}${t.startsWith("windows") ? ".exe" : ""}`;
+    const out = `dist/savesterr-${t}${t.startsWith("windows") ? ".exe" : ""}`;
     const path = await build(t, out);
     const hash = new Bun.CryptoHasher("sha256").update(await Bun.file(path).arrayBuffer()).digest("hex");
     sums.push(`${hash}  ${basename(path)}`);

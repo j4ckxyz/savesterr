@@ -29,12 +29,18 @@ export const DEFAULTS: Settings = {
 export const settingsPath = () => join(configDir(), "settings.json");
 
 export async function loadSettings(): Promise<Settings> {
-  try {
-    const saved = (await Bun.file(settingsPath()).json()) as Partial<Settings>;
-    return { ...DEFAULTS, ...saved };
-  } catch {
-    return { ...DEFAULTS };
+  // Settings saved before the app was renamed from songsterr-pdf are picked up and moved over.
+  for (const [path, legacy] of [
+    [settingsPath(), false],
+    [join(configDir("songsterr-pdf"), "settings.json"), true],
+  ] as const) {
+    try {
+      const settings = { ...DEFAULTS, ...((await Bun.file(path).json()) as Partial<Settings>) };
+      if (legacy) await saveSettings(settings);
+      return settings;
+    } catch {}
   }
+  return { ...DEFAULTS };
 }
 
 export async function saveSettings(s: Settings): Promise<void> {

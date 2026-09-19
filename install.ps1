@@ -1,19 +1,19 @@
-# songsterr-pdf installer for Windows (PowerShell 5.1+ or PowerShell 7).
+# savesterr installer for Windows (PowerShell 5.1+ or PowerShell 7).
 #
-#   irm https://raw.githubusercontent.com/j4ckxyz/songsterr-pdf/main/install.ps1 | iex
+#   gh api repos/j4ckxyz/savesterr/contents/install.ps1 -H "Accept: application/vnd.github.raw" | Out-String | iex
 #
 # Environment overrides:
-#   SONGSTERR_PDF_INSTALL_DIR  where to put the exe  (default: %LOCALAPPDATA%\Programs\songsterr-pdf)
-#   SONGSTERR_PDF_VERSION      e.g. 1.0.0            (default: latest)
-#   SONGSTERR_PDF_REPO         owner/repo on GitHub  (default: j4ckxyz/songsterr-pdf)
+#   SAVESTERR_INSTALL_DIR  where to put the exe  (default: %LOCALAPPDATA%\Programs\savesterr)
+#   SAVESTERR_VERSION      e.g. 1.0.0            (default: latest)
+#   SAVESTERR_REPO         owner/repo on GitHub  (default: j4ckxyz/savesterr)
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue' # the progress bar makes Invoke-WebRequest very slow on PS 5.1
 
 function Install-SongsterrPdf {
-  $Repo = if ($env:SONGSTERR_PDF_REPO) { $env:SONGSTERR_PDF_REPO } else { 'j4ckxyz/songsterr-pdf' }
-  $InstallDir = if ($env:SONGSTERR_PDF_INSTALL_DIR) { $env:SONGSTERR_PDF_INSTALL_DIR } else { Join-Path $env:LOCALAPPDATA 'Programs\songsterr-pdf' }
-  $Version = if ($env:SONGSTERR_PDF_VERSION) { $env:SONGSTERR_PDF_VERSION } else { 'latest' }
+  $Repo = if ($env:SAVESTERR_REPO) { $env:SAVESTERR_REPO } else { 'j4ckxyz/savesterr' }
+  $InstallDir = if ($env:SAVESTERR_INSTALL_DIR) { $env:SAVESTERR_INSTALL_DIR } else { Join-Path $env:LOCALAPPDATA 'Programs\savesterr' }
+  $Version = if ($env:SAVESTERR_VERSION) { $env:SAVESTERR_VERSION } else { 'latest' }
 
   # -- Detect platform --------------------------------------------------------
   $build = [Environment]::OSVersion.Version.Build
@@ -26,7 +26,7 @@ function Install-SongsterrPdf {
     'X64|AMD64' { 'x64' }
     default { throw "Unsupported CPU architecture: $osArch (need x64 or ARM64)." }
   }
-  $asset = "songsterr-pdf-windows-$arch.exe"
+  $asset = "savesterr-windows-$arch.exe"
 
   if ($Version -eq 'latest') {
     $base = "https://github.com/$Repo/releases/latest/download"
@@ -36,14 +36,14 @@ function Install-SongsterrPdf {
     $base = "https://github.com/$Repo/releases/download/$tag"
   }
 
-  Write-Host "Installing songsterr-pdf " -NoNewline -ForegroundColor White
+  Write-Host "Installing savesterr " -NoNewline -ForegroundColor White
   Write-Host "(windows-$arch)" -ForegroundColor DarkGray
 
   # -- Download ---------------------------------------------------------------
   # PowerShell 5.1 defaults to TLS 1.0; GitHub needs 1.2+.
   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
-  $tmp = Join-Path ([IO.Path]::GetTempPath()) ("songsterr-pdf-" + [Guid]::NewGuid())
+  $tmp = Join-Path ([IO.Path]::GetTempPath()) ("savesterr-" + [Guid]::NewGuid())
   New-Item -ItemType Directory -Path $tmp | Out-Null
   try {
     $exeTmp = Join-Path $tmp $asset
@@ -76,7 +76,7 @@ function Install-SongsterrPdf {
 
     # -- Install --------------------------------------------------------------
     New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
-    $target = Join-Path $InstallDir 'songsterr-pdf.exe'
+    $target = Join-Path $InstallDir 'savesterr.exe'
     if (Test-Path $target) {
       # A running exe can't be overwritten, but it can be renamed out of the way.
       Remove-Item "$target.old" -Force -ErrorAction SilentlyContinue
@@ -102,8 +102,8 @@ function Install-SongsterrPdf {
   if (($env:Path -split ';') -notcontains $InstallDir) { $env:Path = "$env:Path;$InstallDir" }
 
   Write-Host ""
-  Write-Host "[ok] songsterr-pdf is installed!" -ForegroundColor Green
-  Write-Host "  Run it with: songsterr-pdf" -ForegroundColor White
+  Write-Host "[ok] savesterr is installed!" -ForegroundColor Green
+  Write-Host "  Run it with: savesterr" -ForegroundColor White
   Write-Host "  (new terminal windows will find it automatically)" -ForegroundColor DarkGray
 }
 

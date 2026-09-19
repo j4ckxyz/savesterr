@@ -1,11 +1,11 @@
 {
-  "name": "songsterr-pdf",
-  "version": "1.0.1",
+  "name": "savesterr",
+  "version": "1.1.0",
   "description": "Interactive CLI that saves Songsterr tabs as clean, printable PDFs — one file per track.",
   "type": "module",
   "private": true,
   "bin": {
-    "songsterr-pdf": "src/cli.ts"
+    "savesterr": "src/cli.ts"
   },
   "scripts": {
     "start": "bun src/cli.ts",

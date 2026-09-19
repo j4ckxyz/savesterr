@@ -1,11 +1,11 @@
-# songsterr-pdf
+# savesterr
 
 **Turn any [Songsterr](https://www.songsterr.com) tab into a clean, printable PDF, from your terminal.**
 
 Search for a song, tick the guitar parts you want, and the PDFs open in your PDF viewer. It's a single self-contained program for macOS, Windows and Linux, with nothing else to install.
 
 ```
-┌   songsterr-pdf v1.0.0
+┌   savesterr v1.0.0
 │
 ◇  Search for a song, or paste a Songsterr link
 │  enter sandman
@@ -31,73 +31,65 @@ Search for a song, tick the guitar parts you want, and the PDFs open in your PDF
 
 ## Install
 
+This repository is private, so installing uses your [GitHub CLI](https://cli.github.com) login. Run `gh auth login` once on the machine, then:
+
 **macOS / Linux**: paste into Terminal:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/j4ckxyz/songsterr-pdf/main/install.sh | sh
+gh api repos/j4ckxyz/savesterr/contents/install.sh -H "Accept: application/vnd.github.raw" | sh
 ```
 
 **Windows**: paste into PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/j4ckxyz/songsterr-pdf/main/install.ps1 | iex
+gh api repos/j4ckxyz/savesterr/contents/install.ps1 -H "Accept: application/vnd.github.raw" | Out-String | iex
 ```
 
 Then open a **new** terminal window and run:
 
 ```sh
-songsterr-pdf
+savesterr
 ```
 
-The installer picks the right build for your computer, verifies its checksum, and adds it to your `PATH`. Nothing needs admin rights.
-
-<details>
-<summary><b>Installing from a private copy of this repository</b></summary>
-
-GitHub doesn't serve files from private repositories to anonymous `curl`/`irm` requests. If you have access, sign in with the [GitHub CLI](https://cli.github.com) (`gh auth login`) and use these instead. The installers automatically fall back to your `gh` login for the download.
-
-```sh
-# macOS / Linux
-gh api repos/j4ckxyz/songsterr-pdf/contents/install.sh -H "Accept: application/vnd.github.raw" | sh
-```
-
-```powershell
-# Windows
-gh api repos/j4ckxyz/songsterr-pdf/contents/install.ps1 -H "Accept: application/vnd.github.raw" | Out-String | iex
-```
-
-</details>
+The installer picks the right build for your computer, verifies its checksum, and adds it to your `PATH`. Nothing needs admin rights. `savesterr update` also uses your `gh` login (or a `GITHUB_TOKEN`) to fetch new versions.
 
 <details>
 <summary><b>Install options</b> (custom folder, specific version)</summary>
 
-Set these environment variables before running the installer:
+Set these environment variables for the installer (the `sh` side of the pipe, or `$env:` in PowerShell):
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `SONGSTERR_PDF_INSTALL_DIR` | `~/.local/bin` · `%LOCALAPPDATA%\Programs\songsterr-pdf` | Where the program goes |
-| `SONGSTERR_PDF_VERSION` | latest | Install a specific version, e.g. `1.0.0` |
-| `SONGSTERR_PDF_NO_MODIFY_PATH` | – | Set to `1` to leave your shell startup files alone (macOS/Linux) |
+| `SAVESTERR_INSTALL_DIR` | `~/.local/bin` · `%LOCALAPPDATA%\Programs\savesterr` | Where the program goes |
+| `SAVESTERR_VERSION` | latest | Install a specific version, e.g. `1.1.0` |
+| `SAVESTERR_NO_MODIFY_PATH` | – | Set to `1` to leave your shell startup files alone (macOS/Linux) |
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/j4ckxyz/songsterr-pdf/main/install.sh | SONGSTERR_PDF_INSTALL_DIR=/usr/local/bin sh
+gh api repos/j4ckxyz/savesterr/contents/install.sh -H "Accept: application/vnd.github.raw" | SAVESTERR_INSTALL_DIR=/usr/local/bin sh
 ```
 
-You can also download a binary for your platform from the [Releases](https://github.com/j4ckxyz/songsterr-pdf/releases) page and put it anywhere on your `PATH`.
+Or download a binary with `gh release download --repo j4ckxyz/savesterr --pattern 'savesterr-darwin-arm64'` (pick your platform) and put it anywhere on your `PATH`.
+
+</details>
+
+<details>
+<summary><b>Upgrading from songsterr-pdf</b></summary>
+
+This app used to be called `songsterr-pdf`. Install `savesterr` with the command above; your settings are carried over automatically on first run. Then remove the old binary (`rm ~/.local/bin/songsterr-pdf`, or delete `%LOCALAPPDATA%\Programs\songsterr-pdf` on Windows) and its `# songsterr-pdf` PATH line from your shell's startup file.
 
 </details>
 
 ## Update
 
 ```sh
-songsterr-pdf update
+savesterr update
 ```
 
 The app checks for new versions once a day. If one is out, it offers to update when you start it and adds an **Update** option to the menu.
 
 ## Using it
 
-Run `songsterr-pdf` and follow the prompts:
+Run `savesterr` and follow the prompts:
 
 1. **Search** by artist or song name, or **paste a Songsterr link** you already have open.
 2. **Pick the song.** Each result shows how many guitar and bass parts it has.
@@ -109,7 +101,7 @@ Run `songsterr-pdf` and follow the prompts:
 
 ### Settings
 
-Run `songsterr-pdf settings`, or choose **Settings** from the menu:
+Run `savesterr settings`, or choose **Settings** from the menu:
 
 | Setting | Options | Default |
 | --- | --- | --- |
@@ -119,7 +111,7 @@ Run `songsterr-pdf settings`, or choose **Settings** from the menu:
 | Multiple parts | one PDF per part · one combined PDF (with bookmarks) | one PDF per part |
 | Check for updates | daily · off | daily |
 
-Settings are stored in `~/Library/Application Support/songsterr-pdf` (macOS), `%APPDATA%\songsterr-pdf` (Windows) or `~/.config/songsterr-pdf` (Linux).
+Settings are stored in `~/Library/Application Support/savesterr` (macOS), `%APPDATA%\savesterr` (Windows) or `~/.config/savesterr` (Linux).
 
 ### Shortcuts for power users
 
@@ -127,25 +119,25 @@ Everything can also be done straight from the command line, which is handy for s
 
 | You want to… | Run |
 | --- | --- |
-| Start with a search already typed | `songsterr-pdf "enter sandman"` |
-| Open a Songsterr link directly | `songsterr-pdf "https://www.songsterr.com/a/wsa/metallica-one-tab-s444"` |
-| See a song's parts and their numbers | `songsterr-pdf 444 --list` |
-| Pick parts without the checklist | `songsterr-pdf 444 -t 5,6` |
-| Get every bass part | `songsterr-pdf 444 -t bass` |
-| Put the parts in one PDF | `songsterr-pdf 444 -t 5,6 --combine` |
-| Use US Letter paper | `songsterr-pdf 444 --paper letter` |
-| No questions: top result, guitar parts | `songsterr-pdf "paranoid black sabbath" -y` |
-| Save somewhere specific, open nothing | `songsterr-pdf 444 -o ~/Desktop/tabs --no-open` |
+| Start with a search already typed | `savesterr "enter sandman"` |
+| Open a Songsterr link directly | `savesterr "https://www.songsterr.com/a/wsa/metallica-one-tab-s444"` |
+| See a song's parts and their numbers | `savesterr 444 --list` |
+| Pick parts without the checklist | `savesterr 444 -t 5,6` |
+| Get every bass part | `savesterr 444 -t bass` |
+| Put the parts in one PDF | `savesterr 444 -t 5,6 --combine` |
+| Use US Letter paper | `savesterr 444 --paper letter` |
+| No questions: top result, guitar parts | `savesterr "paranoid black sabbath" -y` |
+| Save somewhere specific, open nothing | `savesterr 444 -o ~/Desktop/tabs --no-open` |
 
 <details>
 <summary><b>All options</b></summary>
 
 ```
-songsterr-pdf                         Start the app: search, pick tracks, save PDFs
-songsterr-pdf "enter sandman"         Start with a search
-songsterr-pdf <songsterr-link>        Go straight to a song
-songsterr-pdf update                  Update to the latest version
-songsterr-pdf settings                Change the save folder, paper size and more
+savesterr                         Start the app: search, pick tracks, save PDFs
+savesterr "enter sandman"         Start with a search
+savesterr <songsterr-link>        Go straight to a song
+savesterr update                  Update to the latest version
+savesterr settings                Change the save folder, paper size and more
 
 -t, --tracks <which>   guitar, bass, all, or track numbers like 0,2 (skips the track picker)
 -o, --out <folder>     Save into this folder instead of the one in settings
@@ -207,9 +199,9 @@ The installer detects musl-based systems such as Alpine and Void and installs th
 ## Troubleshooting
 
 <details>
-<summary><b>"command not found: songsterr-pdf" after installing</b></summary>
+<summary><b>"command not found: savesterr" after installing</b></summary>
 
-Open a new terminal window: the installer added the program's folder to your `PATH`, and terminals that were already open don't see that change. You can also run it by its full path (`~/.local/bin/songsterr-pdf`, or `%LOCALAPPDATA%\Programs\songsterr-pdf\songsterr-pdf.exe` on Windows).
+Open a new terminal window: the installer added the program's folder to your `PATH`, and terminals that were already open don't see that change. You can also run it by its full path (`~/.local/bin/savesterr`, or `%LOCALAPPDATA%\Programs\savesterr\savesterr.exe` on Windows).
 
 </details>
 
@@ -219,7 +211,7 @@ Open a new terminal window: the installer added the program's folder to your `PA
 The binaries are signed but not notarized by Apple, so macOS blocks them when they're downloaded through a web browser. The install command doesn't hit this. If you downloaded the file manually, clear the download flag once:
 
 ```sh
-xattr -d com.apple.quarantine ./songsterr-pdf-darwin-*
+xattr -d com.apple.quarantine ./savesterr-darwin-*
 ```
 
 </details>
@@ -234,7 +226,7 @@ Opening files uses `xdg-open` (or `wslview`/Explorer on WSL). On a server or min
 <details>
 <summary><b>"No permission to replace …" when updating</b></summary>
 
-You installed into a system folder such as `/usr/local/bin`. Run `sudo songsterr-pdf update`, or re-run the installer.
+You installed into a system folder such as `/usr/local/bin`. Run `sudo savesterr update`, or re-run the installer.
 
 </details>
 
@@ -249,16 +241,16 @@ Only guitar, bass and other stringed parts can be written as tab. Drum and vocal
 
 ```sh
 # macOS / Linux
-rm ~/.local/bin/songsterr-pdf
-rm -rf ~/Library/Application\ Support/songsterr-pdf ~/.config/songsterr-pdf   # settings
+rm ~/.local/bin/savesterr
+rm -rf ~/Library/Application\ Support/savesterr ~/.config/savesterr   # settings
 ```
 
 ```powershell
 # Windows
-Remove-Item -Recurse "$env:LOCALAPPDATA\Programs\songsterr-pdf", "$env:APPDATA\songsterr-pdf"
+Remove-Item -Recurse "$env:LOCALAPPDATA\Programs\savesterr", "$env:APPDATA\savesterr"
 ```
 
-Your downloaded tabs in `Documents/Songsterr Tabs` are left alone. On macOS/Linux you can also delete the `# songsterr-pdf` line the installer added to your shell's startup file (e.g. `~/.zshrc`).
+Your downloaded tabs in `Documents/Songsterr Tabs` are left alone. On macOS/Linux you can also delete the `# savesterr` line the installer added to your shell's startup file (e.g. `~/.zshrc`).
 
 ---
 
@@ -308,12 +300,12 @@ Grace notes carry a `duration` but take up no time in the bar.
 Requires [Bun](https://bun.sh) 1.3+.
 
 ```sh
-git clone https://github.com/j4ckxyz/songsterr-pdf.git && cd songsterr-pdf
+git clone https://github.com/j4ckxyz/savesterr.git && cd savesterr
 bun install
 bun start                 # run from source (same as: bun src/cli.ts)
 bun test                  # unit + rendering tests
 bun run typecheck
-bun run build             # standalone binary for this machine → dist/songsterr-pdf
+bun run build             # standalone binary for this machine → dist/savesterr
 bun run build:all         # every platform + SHA256SUMS → dist/
 scripts/test-distros.sh   # run the Linux builds across distros (needs Docker)
 ```
@@ -341,7 +333,7 @@ A small build plugin in `scripts/build.ts` embeds pdfkit's font metrics. pdfkit 
 1. Bump `version` in `package.json` and commit.
 2. `git tag v1.2.3 && git push --tags`
 
-The **Release** workflow tests the code, builds all 8 binaries on macOS so the Mac builds can be re-signed with `codesign` (Bun's own signature is invalidated when the app is embedded), and publishes them with `SHA256SUMS` and the installers. The **Install & update test** workflow then runs both installers and `songsterr-pdf update` on every OS against the new release.
+The **Release** workflow tests the code, builds all 8 binaries on macOS so the Mac builds can be re-signed with `codesign` (Bun's own signature is invalidated when the app is embedded), and publishes them with `SHA256SUMS` and the installers. The **Install & update test** workflow then runs both installers and `savesterr update` on every OS against the new release.
 
 ## Limitations
 
@@ -349,6 +341,6 @@ The **Release** workflow tests the code, builds all 8 binaries on macOS so the M
 - A few rarer techniques aren't drawn yet, such as slap/pop, whammy-bar dives and trills.
 - Songsterr's endpoints are undocumented and could change without notice. If downloads start failing, check for an update.
 
-## Disclaimer
+## Terms of use
 
-This is an unofficial tool with no connection to Songsterr. It's meant for personal practice with tabs you can already view on the site. Please respect Songsterr's terms of service and the work of the transcribers and artists, and consider [Songsterr Plus](https://www.songsterr.com/plus) if you use it regularly.
+This is an unofficial, private tool with no connection to Songsterr, kept for personal use. Songsterr's [terms](https://www.songsterr.com/terms) list **Print** as a Songsterr Plus feature and don't allow automated tools that provide paid features without an active subscription, so use this with a [Songsterr Plus](https://www.songsterr.com/plus) subscription. The tabs belong to Songsterr and their transcribers: don't share or redistribute the PDFs. Use at your own risk.

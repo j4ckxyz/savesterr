@@ -38,7 +38,7 @@ echo "| --- | --- | --- |"
 failed=0
 for entry in "${IMAGES[@]}"; do
   IFS='|' read -r image libc expect <<<"$entry"
-  bin="songsterr-pdf-linux-$ARCH"; [ "$libc" = musl ] && bin="$bin-musl"
+  bin="savesterr-linux-$ARCH"; [ "$libc" = musl ] && bin="$bin-musl"
   # Bun's musl builds link against the C++ runtime, which Alpine doesn't ship by default.
   prep=""; [ "$libc" = musl ] && prep="apk add --no-cache libstdc++ libgcc >/dev/null &&"
   out=$(docker run --rm --platform "$PLATFORM" -v "$PWD/dist:/dist:ro" "$image" sh -c "

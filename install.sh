@@ -1,19 +1,19 @@
 #!/bin/sh
-# songsterr-pdf installer for macOS and Linux.
+# savesterr installer for macOS and Linux.
 #
-#   curl -fsSL https://raw.githubusercontent.com/j4ckxyz/songsterr-pdf/main/install.sh | sh
+#   gh api repos/j4ckxyz/savesterr/contents/install.sh -H "Accept: application/vnd.github.raw" | sh
 #
 # Environment overrides:
-#   SONGSTERR_PDF_INSTALL_DIR  where to put the binary   (default: ~/.local/bin)
-#   SONGSTERR_PDF_VERSION      e.g. 1.0.0                (default: latest)
-#   SONGSTERR_PDF_REPO         owner/repo on GitHub      (default: j4ckxyz/songsterr-pdf)
-#   SONGSTERR_PDF_NO_MODIFY_PATH=1  don't touch shell startup files
+#   SAVESTERR_INSTALL_DIR  where to put the binary   (default: ~/.local/bin)
+#   SAVESTERR_VERSION      e.g. 1.0.0                (default: latest)
+#   SAVESTERR_REPO         owner/repo on GitHub      (default: j4ckxyz/savesterr)
+#   SAVESTERR_NO_MODIFY_PATH=1  don't touch shell startup files
 set -eu
 
-REPO="${SONGSTERR_PDF_REPO:-j4ckxyz/songsterr-pdf}"
-INSTALL_DIR="${SONGSTERR_PDF_INSTALL_DIR:-$HOME/.local/bin}"
-VERSION="${SONGSTERR_PDF_VERSION:-latest}"
-BIN="songsterr-pdf"
+REPO="${SAVESTERR_REPO:-j4ckxyz/savesterr}"
+INSTALL_DIR="${SAVESTERR_INSTALL_DIR:-$HOME/.local/bin}"
+VERSION="${SAVESTERR_VERSION:-latest}"
+BIN="savesterr"
 
 if [ -t 1 ]; then
   bold=$(printf '\033[1m'); green=$(printf '\033[32m'); red=$(printf '\033[31m'); dim=$(printf '\033[2m'); reset=$(printf '\033[0m')
@@ -30,7 +30,7 @@ case "$os" in
   Darwin) os=darwin ;;
   Linux) os=linux ;;
   MINGW* | MSYS* | CYGWIN*) fail "on Windows, run this in PowerShell instead:
-  irm https://raw.githubusercontent.com/$REPO/main/install.ps1 | iex" ;;
+  gh api repos/$REPO/contents/install.ps1 -H \"Accept: application/vnd.github.raw\" | Out-String | iex" ;;
   *) fail "unsupported operating system: $os" ;;
 esac
 case "$arch" in
@@ -54,10 +54,10 @@ if [ "$os" = linux ]; then
     # The musl build needs the C++ runtime, which Alpine doesn't install by default.
     if ! ls /usr/lib/libstdc++.so.6* /lib/libstdc++.so.6* >/dev/null 2>&1; then
       if command -v apk >/dev/null 2>&1; then
-        fail "songsterr-pdf needs the C++ runtime. Install it, then re-run this installer:
+        fail "savesterr needs the C++ runtime. Install it, then re-run this installer:
   apk add libstdc++ libgcc      (prefix with sudo/doas if you're not root)"
       fi
-      fail "songsterr-pdf needs the C++ runtime (libstdc++ and libgcc). Install them with your package manager, then re-run this installer."
+      fail "savesterr needs the C++ runtime (libstdc++ and libgcc). Install them with your package manager, then re-run this installer."
     fi
   fi
   if [ "$arch" = x64 ] && [ -r /proc/cpuinfo ] && ! grep -q sse4_2 /proc/cpuinfo; then
@@ -75,7 +75,7 @@ else
 fi
 
 # ── Download ─────────────────────────────────────────────────────────────────
-tmp=$(mktemp -d 2>/dev/null || mktemp -d -t songsterr-pdf)
+tmp=$(mktemp -d 2>/dev/null || mktemp -d -t savesterr)
 trap 'rm -rf "$tmp"' EXIT INT TERM
 
 fetch() { # url dest
@@ -84,7 +84,7 @@ fetch() { # url dest
   else fail "need curl or wget to download"; fi
 }
 
-printf '%s\n' "${bold}Installing songsterr-pdf${reset} ${dim}($os-$arch$variant)${reset}"
+printf '%s\n' "${bold}Installing savesterr${reset} ${dim}($os-$arch$variant)${reset}"
 info "Downloading $asset"
 if ! fetch "$url/$asset" "$tmp/$BIN" 2>/dev/null || ! fetch "$url/SHA256SUMS" "$tmp/SHA256SUMS" 2>/dev/null; then
   # Private repositories aren't downloadable anonymously; fall back to the GitHub CLI's login.
@@ -114,7 +114,7 @@ fi
 mkdir -p "$INSTALL_DIR"
 chmod +x "$tmp/$BIN"
 [ "$os" = darwin ] && xattr -d com.apple.quarantine "$tmp/$BIN" 2>/dev/null || true
-mv -f "$tmp/$BIN" "$INSTALL_DIR/$BIN" || fail "couldn't write to $INSTALL_DIR (try SONGSTERR_PDF_INSTALL_DIR=... or sudo)"
+mv -f "$tmp/$BIN" "$INSTALL_DIR/$BIN" || fail "couldn't write to $INSTALL_DIR (try SAVESTERR_INSTALL_DIR=... or sudo)"
 installed=$("$INSTALL_DIR/$BIN" --version 2>&1) || fail "the installed binary failed to run:
 $installed"
 info "Installed $installed to $INSTALL_DIR/$BIN"
@@ -123,7 +123,7 @@ info "Installed $installed to $INSTALL_DIR/$BIN"
 on_path=false
 case ":$PATH:" in *":$INSTALL_DIR:"*) on_path=true ;; esac
 
-if [ "$on_path" = false ] && [ -z "${SONGSTERR_PDF_NO_MODIFY_PATH:-}" ]; then
+if [ "$on_path" = false ] && [ -z "${SAVESTERR_NO_MODIFY_PATH:-}" ]; then
   shell_name=$(basename "${SHELL:-sh}")
   case "$shell_name" in
     zsh) rc="${ZDOTDIR:-$HOME}/.zshrc"; line="export PATH=\"$INSTALL_DIR:\$PATH\"" ;;
@@ -135,15 +135,15 @@ if [ "$on_path" = false ] && [ -z "${SONGSTERR_PDF_NO_MODIFY_PATH:-}" ]; then
   esac
   mkdir -p "$(dirname "$rc")"
   if ! grep -qs "$INSTALL_DIR" "$rc"; then
-    printf '\n# songsterr-pdf\n%s\n' "$line" >>"$rc"
+    printf '\n# savesterr\n%s\n' "$line" >>"$rc"
     info "Added $INSTALL_DIR to your PATH in $rc"
   fi
 fi
 
-printf '\n%s\n' "${green}✓${reset} ${bold}songsterr-pdf is installed!${reset}"
+printf '\n%s\n' "${green}✓${reset} ${bold}savesterr is installed!${reset}"
 if [ "$on_path" = true ]; then
-  printf '%s\n' "  Run it with: ${bold}songsterr-pdf${reset}"
+  printf '%s\n' "  Run it with: ${bold}savesterr${reset}"
 else
-  printf '%s\n' "  Open a new terminal, then run: ${bold}songsterr-pdf${reset}"
+  printf '%s\n' "  Open a new terminal, then run: ${bold}savesterr${reset}"
   printf '%s\n' "  ${dim}(or right now: $INSTALL_DIR/$BIN)${reset}"
 fi

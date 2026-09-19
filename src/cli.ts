@@ -11,14 +11,14 @@ import { renderPdf } from "./render";
 import type { SongMeta, TrackMeta } from "./types";
 import { buildTarget, checkForUpdate, cleanupAfterUpdate, isCompiled, selfUpdate, VERSION } from "./update";
 
-const USAGE = `songsterr-pdf ${VERSION} — save Songsterr tabs as PDFs
+const USAGE = `savesterr ${VERSION} — save Songsterr tabs as PDFs
 
 Usage:
-  songsterr-pdf                         Start the app: search, pick tracks, save PDFs
-  songsterr-pdf "enter sandman"         Start with a search
-  songsterr-pdf <songsterr-link>        Go straight to a song
-  songsterr-pdf update                  Update to the latest version
-  songsterr-pdf settings                Change the save folder, paper size and more
+  savesterr                         Start the app: search, pick tracks, save PDFs
+  savesterr "enter sandman"         Start with a search
+  savesterr <songsterr-link>        Go straight to a song
+  savesterr update                  Update to the latest version
+  savesterr settings                Change the save folder, paper size and more
 
 Options:
   -t, --tracks <which>   guitar, bass, all, or track numbers like 0,2 (skips the track picker)
@@ -33,9 +33,9 @@ Options:
   -h, --help             Show this help
 
 Examples:
-  songsterr-pdf
-  songsterr-pdf "paranoid black sabbath" -y
-  songsterr-pdf https://www.songsterr.com/a/wsa/metallica-one-tab-s444 -t 5,6 --combine`;
+  savesterr
+  savesterr "paranoid black sabbath" -y
+  savesterr https://www.songsterr.com/a/wsa/metallica-one-tab-s444 -t 5,6 --combine`;
 
 // ─── Track helpers ──────────────────────────────────────────────────────────
 
@@ -312,7 +312,7 @@ async function runUpdate(interactive: boolean): Promise<boolean> {
   try {
     const result = await selfUpdate((msg) => (s ? s.message(msg) : console.log(msg)));
     const msg = result.updated
-      ? `Updated v${result.from} → v${result.to}. Restart songsterr-pdf to use it.`
+      ? `Updated v${result.from} → v${result.to}. Restart savesterr to use it.`
       : `You're on the latest version (v${result.version}).`;
     s ? s.stop(msg) : console.log(msg);
     return result.updated;
@@ -353,7 +353,7 @@ async function interactiveDownload(settings: Settings, flags: Flags, ref?: SongR
 
 async function appLoop(settings: Settings, flags: Flags, initialQuery?: string) {
   const updateCheck = isCompiled && settings.checkForUpdates ? checkForUpdate() : Promise.resolve(null);
-  p.intro(` songsterr-pdf v${VERSION} `);
+  p.intro(` savesterr v${VERSION} `);
 
   // Recommend updating up front if a newer release exists (the daily cache keeps this instant).
   let newer = await Promise.race([updateCheck, Bun.sleep(1500).then(() => null)]);
@@ -368,7 +368,7 @@ async function appLoop(settings: Settings, flags: Flags, initialQuery?: string) 
       }),
     );
     if (go && (await runUpdate(true))) {
-      p.outro("Run songsterr-pdf again to start the new version.");
+      p.outro("Run savesterr again to start the new version.");
       return;
     }
   }
@@ -402,7 +402,7 @@ async function appLoop(settings: Settings, flags: Flags, initialQuery?: string) 
       if (next === "open" && lastFolder) openPath(lastFolder);
       if (next === "settings") settings = await editSettings(settings);
       if (next === "update" && (await runUpdate(true))) {
-        p.outro("Run songsterr-pdf again to start the new version.");
+        p.outro("Run savesterr again to start the new version.");
         return;
       }
       if (next === "update") newer = null;
@@ -444,7 +444,7 @@ async function main() {
   });
 
   if (values.help) return console.log(USAGE);
-  if (values.version) return console.log(`songsterr-pdf ${VERSION}${buildTarget ? ` (${buildTarget})` : " (source)"}`);
+  if (values.version) return console.log(`savesterr ${VERSION}${buildTarget ? ` (${buildTarget})` : " (source)"}`);
 
   await cleanupAfterUpdate();
   if (values.paper && !["a4", "letter"].includes(values.paper.toLowerCase())) throw new Error(`--paper must be a4 or letter`);
@@ -464,7 +464,7 @@ async function main() {
   if (input === "update") return void (await runUpdate(interactive));
   if (input === "settings") {
     if (!interactive) return console.log(`${settingsPath()}\n${JSON.stringify(settings, null, 2)}`);
-    p.intro(` songsterr-pdf v${VERSION} `);
+    p.intro(` savesterr v${VERSION} `);
     await editSettings(settings);
     return p.outro("Done.");
   }
@@ -504,7 +504,7 @@ async function main() {
 
   if (isCompiled && settings.checkForUpdates && process.stdout.isTTY) {
     const newer = await checkForUpdate({ timeoutMs: 1500 });
-    if (newer) console.log(`\nUpdate available: v${VERSION} → v${newer}. Run: songsterr-pdf update`);
+    if (newer) console.log(`\nUpdate available: v${VERSION} → v${newer}. Run: savesterr update`);
   }
 }
 

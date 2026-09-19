@@ -811,7 +811,7 @@ export async function renderPdf(meta: SongMeta, parts: Part[], opts: RenderOptio
       Title: single ? `${meta.artist} - ${meta.title} (${parts[0]!.title})` : `${meta.artist} - ${meta.title}`,
       Author: meta.artist,
       Subject: "Guitar tab",
-      Creator: "songsterr-pdf",
+      Creator: "savesterr",
     },
   });
   const chunks: Buffer[] = [];

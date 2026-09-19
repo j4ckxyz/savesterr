@@ -1,6 +1,6 @@
 name: Install & update test
 
-# Exercises the real install scripts and `songsterr-pdf update` against the
+# Exercises the real install scripts and `savesterr update` against the
 # latest published release on every OS.
 on:
   workflow_run:
@@ -28,30 +28,30 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           sh install.sh
-          "$HOME/.local/bin/songsterr-pdf" --version
-          grep -H songsterr-pdf ~/.bashrc ~/.bash_profile ~/.zshrc 2>/dev/null || true
-          bash -lic 'command -v songsterr-pdf'
+          "$HOME/.local/bin/savesterr" --version
+          grep -H savesterr ~/.bashrc ~/.bash_profile ~/.zshrc 2>/dev/null || true
+          bash -lic 'command -v savesterr'
 
       - name: Install (Windows PowerShell 5.1)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
           Get-Content -Raw install.ps1 | Invoke-Expression
-          songsterr-pdf --version
-          if ([Environment]::GetEnvironmentVariable('Path','User') -notlike '*songsterr-pdf*') { throw 'PATH not updated' }
+          savesterr --version
+          if ([Environment]::GetEnvironmentVariable('Path','User') -notlike '*savesterr*') { throw 'PATH not updated' }
 
       - name: Reinstall over itself (PowerShell 7)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           Get-Content -Raw install.ps1 | Invoke-Expression
-          & "$env:LOCALAPPDATA\Programs\songsterr-pdf\songsterr-pdf.exe" --version
+          & "$env:LOCALAPPDATA\Programs\savesterr\savesterr.exe" --version
 
       - name: Download a tab with the installed binary
         shell: bash
         run: |
-          exe="$HOME/.local/bin/songsterr-pdf"
-          [ "$RUNNER_OS" = Windows ] && exe="$LOCALAPPDATA/Programs/songsterr-pdf/songsterr-pdf.exe"
+          exe="$HOME/.local/bin/savesterr"
+          [ "$RUNNER_OS" = Windows ] && exe="$LOCALAPPDATA/Programs/savesterr/savesterr.exe"
           "$exe" 444 -t 5 -y --no-open -o out
           ls out/*.pdf
 
@@ -63,9 +63,9 @@ jobs:
         run: |
           bun install --frozen-lockfile
           bun scripts/build.ts --current --as-version 0.0.1
-          ./dist/songsterr-pdf --version
-          ./dist/songsterr-pdf update
-          latest="$(./dist/songsterr-pdf --version)"
+          ./dist/savesterr --version
+          ./dist/savesterr update
+          latest="$(./dist/savesterr --version)"
           echo "$latest"
           case "$latest" in *" 0.0.1 "*) echo "update did not replace the binary"; exit 1 ;; esac
-          ./dist/songsterr-pdf update | grep -i "latest version"
+          ./dist/savesterr update | grep -i "latest version"

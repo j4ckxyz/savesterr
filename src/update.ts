@@ -9,7 +9,7 @@ declare const BUILD_TARGET: string; // e.g. "linux-x64-musl" — picks the match
 declare const BUILD_VERSION: string; // normally package.json's version; overridable for update testing
 
 export const VERSION: string = typeof BUILD_VERSION === "string" ? BUILD_VERSION : pkg.version;
-export const REPO = process.env.SONGSTERR_PDF_REPO || "j4ckxyz/songsterr-pdf";
+export const REPO = process.env.SAVESTERR_REPO || "j4ckxyz/savesterr";
 
 export const buildTarget: string | null = typeof BUILD_TARGET === "string" ? BUILD_TARGET : null;
 export const isCompiled = buildTarget !== null;
@@ -56,7 +56,7 @@ function githubToken(): string | null {
 }
 
 async function github(url: string, accept: string, timeoutMs: number): Promise<Response> {
-  const headers: Record<string, string> = { Accept: accept, "User-Agent": `songsterr-pdf/${VERSION}` };
+  const headers: Record<string, string> = { Accept: accept, "User-Agent": `savesterr/${VERSION}` };
   const signal = AbortSignal.timeout(timeoutMs);
   let res = await fetch(url, { headers, signal });
   // A 404 on a private repo just means "not authenticated"; retry with a token if we can find one.
@@ -119,7 +119,7 @@ export async function selfUpdate(log: (msg: string) => void = () => {}): Promise
   if (compareVersions(latest, VERSION) <= 0) return { updated: false, version: VERSION };
 
   const isWindows = process.platform === "win32";
-  const assetName = `songsterr-pdf-${buildTarget}${isWindows ? ".exe" : ""}`;
+  const assetName = `savesterr-${buildTarget}${isWindows ? ".exe" : ""}`;
   const asset = release.assets.find((a) => a.name === assetName);
   const sumsAsset = release.assets.find((a) => a.name === "SHA256SUMS");
   if (!asset) throw new Error(`Release ${release.tag_name} has no build for ${buildTarget}`);

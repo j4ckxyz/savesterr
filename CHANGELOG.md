@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+- Renamed to **savesterr**: the command, release files, installers, environment variables (`SAVESTERR_*`) and repository.
+- Settings from `songsterr-pdf` are migrated automatically on first run.
+- Install instructions use the GitHub CLI, since the repository is private.
+
 ## 1.0.1
 
 - Fix: macOS binaries now carry a valid code signature. Bun's embedded app bundle invalidated the original ad-hoc signature, so releases are now re-signed with the JIT entitlements Bun recommends.
