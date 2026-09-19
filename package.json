@@ -1,7 +1,7 @@
 {
   "name": "songsterr-pdf",
-  "version": "0.1.0",
-  "description": "Interactive CLI that saves Songsterr tabs as clean, printable PDFs \u2014 one file per track.",
+  "version": "1.0.0",
+  "description": "Interactive CLI that saves Songsterr tabs as clean, printable PDFs — one file per track.",
   "type": "module",
   "private": true,
   "bin": {
@@ -9,7 +9,10 @@
   },
   "scripts": {
     "start": "bun src/cli.ts",
-    "build": "bun build src/cli.ts --compile --outfile songsterr-pdf"
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "build": "bun scripts/build.ts --current",
+    "build:all": "bun scripts/build.ts"
   },
   "keywords": [
     "songsterr",

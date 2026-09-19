@@ -3,10 +3,9 @@ import type { Beat, Measure, Note, SongMeta, Track } from "./types";
 
 type Doc = PDFKit.PDFDocument;
 
-const PAGE_W = 595.28;
-const PAGE_H = 841.89;
+export type Paper = "a4" | "letter";
+const PAPER_SIZES: Record<Paper, [number, number]> = { a4: [595.28, 841.89], letter: [612, 792] };
 const MARGIN = { l: 40, r: 30, t: 36, b: 40 };
-const CONTENT_W = PAGE_W - MARGIN.l - MARGIN.r;
 
 const STRING_GAP = 7.5;
 const FRET_SIZE = 7.5;
@@ -182,11 +181,11 @@ function layoutMeasure(doc: Doc, m: Measure, index: number, sig: [number, number
   };
 }
 
-function justifyLine(measures: MeasureLayout[], isLast: boolean) {
+function justifyLine(measures: MeasureLayout[], isLast: boolean, contentW: number) {
   const natural = measures.reduce((a, m) => a + m.natural, 0);
   const stretchable = measures.reduce((a, m) => a + m.slots.reduce((b, s) => b + s.w, 0), 0);
-  let scale = 1 + (CONTENT_W - natural) / stretchable;
-  if (isLast && natural < CONTENT_W * 0.75) scale = Math.min(scale, 1.15);
+  let scale = 1 + (contentW - natural) / stretchable;
+  if (isLast && natural < contentW * 0.75) scale = Math.min(scale, 1.15);
   let x = MARGIN.l;
   for (const m of measures) {
     m.x = x;
@@ -236,13 +235,22 @@ class TabRenderer {
   private lines: LineLayout[] = [];
   private staffH: number;
   private tempoAt = new Map<number, number>();
+  private pageW: number;
+  private pageH: number;
+  private contentW: number;
+  /** Index of the document page this track starts on (non-zero in combined PDFs). */
+  readonly firstPage: number;
 
   constructor(
     private doc: Doc,
     private meta: SongMeta,
     private track: Track,
     private trackTitle: string,
+    paper: Paper,
   ) {
+    [this.pageW, this.pageH] = PAPER_SIZES[paper];
+    this.contentW = this.pageW - MARGIN.l - MARGIN.r;
+    this.firstPage = doc.bufferedPageRange().start + doc.bufferedPageRange().count - 1;
     this.staffH = (track.strings - 1) * STRING_GAP;
     for (const t of track.automations?.tempo ?? []) this.tempoAt.set(t.measure, t.bpm);
   }
@@ -250,7 +258,7 @@ class TabRenderer {
   render() {
     this.layout();
     this.drawHeader();
-    let page = 0;
+    let page = this.firstPage;
     for (const line of this.lines) {
       if (line.page !== page) {
         this.doc.addPage();
@@ -259,7 +267,11 @@ class TabRenderer {
       this.drawLine(line);
     }
     this.drawConnections();
-    this.drawFooters();
+  }
+
+  /** Index of the last page this track occupies. */
+  get lastPage(): number {
+    return this.lines.length ? this.lines[this.lines.length - 1]!.page : this.firstPage;
   }
 
   private layout() {
@@ -276,7 +288,7 @@ class TabRenderer {
     let cur: MeasureLayout[] = [];
     let w = 0;
     for (const ml of all) {
-      if (cur.length && w + ml.natural > CONTENT_W) {
+      if (cur.length && w + ml.natural > this.contentW) {
         groups.push(cur);
         cur = [];
         w = 0;
@@ -286,13 +298,13 @@ class TabRenderer {
     }
     if (cur.length) groups.push(cur);
 
-    let y = MARGIN.t + 78; // header space on page 1
-    let page = 0;
+    let y = MARGIN.t + 78; // header space on the track's first page
+    let page = this.firstPage;
     groups.forEach((measures, i) => {
-      justifyLine(measures, i === groups.length - 1);
+      justifyLine(measures, i === groups.length - 1, this.contentW);
       const lanes = lanesFor(measures, this.tempoAt);
       const height = 6 + laneTotal(lanes) + this.staffH + RHYTHM_H;
-      if (y + height > PAGE_H - MARGIN.b) {
+      if (y + height > this.pageH - MARGIN.b) {
         page++;
         y = MARGIN.t;
       }
@@ -313,7 +325,7 @@ class TabRenderer {
   private drawHeader() {
     const { doc, meta, track } = this;
     doc.font("Helvetica-Bold").fontSize(20).fillColor(INK);
-    doc.text(meta.title, MARGIN.l, MARGIN.t, { width: CONTENT_W, lineBreak: false, ellipsis: true });
+    doc.text(meta.title, MARGIN.l, MARGIN.t, { width: this.contentW, lineBreak: false, ellipsis: true });
     doc.font("Helvetica").fontSize(12).fillColor(MUTED);
     doc.text(meta.artist, MARGIN.l, MARGIN.t + 25, { lineBreak: false });
 
@@ -326,24 +338,13 @@ class TabRenderer {
       bpm ? `Tempo: ${bpm} bpm` : "",
     ].filter(Boolean);
     doc.font("Helvetica").fontSize(9).fillColor(INK);
-    doc.text(details.join("   ·   "), MARGIN.l, MARGIN.t + 45, { width: CONTENT_W, lineBreak: false });
+    doc.text(details.join("   ·   "), MARGIN.l, MARGIN.t + 45, { width: this.contentW, lineBreak: false });
     doc
       .moveTo(MARGIN.l, MARGIN.t + 62)
-      .lineTo(PAGE_W - MARGIN.r, MARGIN.t + 62)
+      .lineTo(this.pageW - MARGIN.r, MARGIN.t + 62)
       .lineWidth(0.5)
       .strokeColor("#cccccc")
       .stroke();
-  }
-
-  private drawFooters() {
-    const { doc } = this;
-    const range = doc.bufferedPageRange();
-    for (let i = range.start; i < range.start + range.count; i++) {
-      doc.switchToPage(i);
-      const label = `${this.meta.artist} – ${this.meta.title} · ${this.trackTitle}`;
-      text(doc, label, MARGIN.l, PAGE_H - 22, { size: 7, color: MUTED });
-      text(doc, `${i + 1} / ${range.count}`, PAGE_W - MARGIN.r, PAGE_H - 22, { size: 7, color: MUTED, align: "right" });
-    }
   }
 
   private stringY(line: LineLayout, s: number) {
@@ -784,18 +785,56 @@ class TabRenderer {
   }
 }
 
-export async function renderTrackPdf(meta: SongMeta, track: Track, trackTitle: string): Promise<Uint8Array> {
+export interface Part {
+  track: Track;
+  title: string;
+}
+
+export interface RenderOptions {
+  paper?: Paper;
+}
+
+/**
+ * Render one or more tracks of a song into a single PDF. Each track starts on a
+ * new page with its own header and gets a bookmark; footers carry the track
+ * name and overall page numbers.
+ */
+export async function renderPdf(meta: SongMeta, parts: Part[], opts: RenderOptions = {}): Promise<Uint8Array> {
+  const paper = opts.paper ?? "a4";
+  const [pageW, pageH] = PAPER_SIZES[paper];
+  const single = parts.length === 1;
   const doc = new PDFDocument({
-    size: "A4",
+    size: [pageW, pageH],
     margins: { top: 0, bottom: 0, left: 0, right: 0 },
     bufferPages: true,
-    info: { Title: `${meta.artist} - ${meta.title} (${trackTitle})`, Creator: "songsterr-pdf" },
+    info: {
+      Title: single ? `${meta.artist} - ${meta.title} (${parts[0]!.title})` : `${meta.artist} - ${meta.title}`,
+      Author: meta.artist,
+      Subject: "Guitar tab",
+      Creator: "songsterr-pdf",
+    },
   });
   const chunks: Buffer[] = [];
   doc.on("data", (c: Buffer) => chunks.push(c));
   const done = new Promise<void>((resolve) => doc.on("end", () => resolve()));
 
-  new TabRenderer(doc, meta, track, trackTitle).render();
+  const pageLabels: string[] = [];
+  parts.forEach((part, i) => {
+    if (i > 0) doc.addPage();
+    if (!single) doc.outline.addItem(part.title);
+    const r = new TabRenderer(doc, meta, part.track, part.title, paper);
+    r.render();
+    for (let p = r.firstPage; p <= r.lastPage; p++) pageLabels[p] = part.title;
+  });
+
+  const range = doc.bufferedPageRange();
+  for (let i = range.start; i < range.start + range.count; i++) {
+    doc.switchToPage(i);
+    const label = `${meta.artist} – ${meta.title} · ${pageLabels[i] ?? ""}`;
+    text(doc, label, MARGIN.l, pageH - 22, { size: 7, color: MUTED });
+    text(doc, `${i + 1} / ${range.count}`, pageW - MARGIN.r, pageH - 22, { size: 7, color: MUTED, align: "right" });
+  }
+
   doc.end();
   await done;
   return new Uint8Array(Buffer.concat(chunks));

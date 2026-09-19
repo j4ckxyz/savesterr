@@ -1,0 +1,71 @@
+name: Install & update test
+
+# Exercises the real install scripts and `songsterr-pdf update` against the
+# latest published release on every OS.
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  install:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-22.04, macos-26, macos-14, macos-15-intel, windows-2025, windows-2022]
+    env:
+      # Only needed while the repository is private (installers fall back to `gh`).
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install (sh)
+        if: runner.os != 'Windows'
+        run: |
+          sh install.sh
+          "$HOME/.local/bin/songsterr-pdf" --version
+          grep -H songsterr-pdf ~/.bashrc ~/.bash_profile ~/.zshrc 2>/dev/null || true
+          bash -lic 'command -v songsterr-pdf'
+
+      - name: Install (Windows PowerShell 5.1)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          Get-Content -Raw install.ps1 | Invoke-Expression
+          songsterr-pdf --version
+          if ([Environment]::GetEnvironmentVariable('Path','User') -notlike '*songsterr-pdf*') { throw 'PATH not updated' }
+
+      - name: Reinstall over itself (PowerShell 7)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Get-Content -Raw install.ps1 | Invoke-Expression
+          & "$env:LOCALAPPDATA\Programs\songsterr-pdf\songsterr-pdf.exe" --version
+
+      - name: Download a tab with the installed binary
+        shell: bash
+        run: |
+          exe="$HOME/.local/bin/songsterr-pdf"
+          [ "$RUNNER_OS" = Windows ] && exe="$LOCALAPPDATA/Programs/songsterr-pdf/songsterr-pdf.exe"
+          "$exe" 444 -t 5 -y --no-open -o out
+          ls out/*.pdf
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - name: Self-update from an old version
+        shell: bash
+        run: |
+          bun install --frozen-lockfile
+          bun scripts/build.ts --current --as-version 0.0.1
+          ./dist/songsterr-pdf --version
+          ./dist/songsterr-pdf update
+          latest="$(./dist/songsterr-pdf --version)"
+          echo "$latest"
+          case "$latest" in *" 0.0.1 "*) echo "update did not replace the binary"; exit 1 ;; esac
+          ./dist/songsterr-pdf update | grep -i "latest version"

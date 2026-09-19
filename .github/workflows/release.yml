@@ -1,0 +1,32 @@
+name: Release
+
+# Push a tag like v1.2.3 (matching package.json) to build and publish binaries.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # Built on macOS so the darwin binaries get Bun's ad-hoc code signature.
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - run: bun install --frozen-lockfile
+      - run: bun test
+      - name: Check tag matches package.json
+        run: |
+          pkg="v$(bun -e 'console.log(require("./package.json").version)')"
+          [ "$pkg" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME != package.json $pkg"; exit 1; }
+      - run: bun scripts/build.ts
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* install.sh install.ps1 \
+            --title "songsterr-pdf $GITHUB_REF_NAME" --generate-notes --verify-tag
